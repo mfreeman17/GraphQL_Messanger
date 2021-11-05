@@ -1,41 +1,62 @@
-from fastapi import FastAPI, HTTPException, Depends
-from .schemas import Post, PostResponse
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+from . import schemas
 from strawberry.fastapi import GraphQLRouter
-from sqlalchemy.sql import text
+from . import oath2
+from .utils import hash_password, verify
 import strawberry
 from typing  import List
 from strawberry.fastapi import GraphQLRouter
 from . import models
+from strawberry.permission import BasePermission
 from .database import engine, get_db
 
 models.Base.metadata.create_all(bind=engine)
+
+
+class isAuthenticated(BasePermission):
+    message = "User is not authenticated"
 
 
 @strawberry.type
 class Query():
 
     @strawberry.field
-    def getPosts(self)->List[PostResponse]:
+    def getPosts(self)->List[schemas.PostResponse]:
         db = next(get_db())
         posts = db.query(models.Post).all()
         return posts
 
     @strawberry.field
-    def getPostById(self, id :int) -> PostResponse:
+    def getPostById(self, id :int) -> schemas.PostResponse:
         db = next(get_db())
         post = db.query(models.Post).filter(models.Post.id==id).first()
         return post
 
 
+
+
+
 @strawberry.type
 class Mutation:
     @strawberry.mutation
-    def createPost(self, title: str, content: str) -> Post:
-        post = Post(title, content)
+    def createUser(self, username: str, password: str)-> str:
         db = next(get_db())
-        db.add(models.Post(title=title, content= content))
+        db.add(models.Users(username=username, password= hash_password(password)))
         db.commit()
-        return post
+        return f"created user {username}"
+
+    @strawberry.field
+    def login(self, username: str, password: str) -> schemas.LoginResult:
+
+        db = next(get_db())
+        user = db.query(models.Users).filter(models.Users.username == username).first()
+        if not user or not verify(password, user.password):
+            return schemas.LoginError(message="Login Unsuccessful")
+        access_token = oath2.create_access_token(data = {"user_id" : user.id})
+        return schemas.LoginSuccess(token = access_token)
+
+
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)
 
@@ -50,47 +71,5 @@ app = FastAPI()
 
 
 
-"""
-PostResponse(
-    id = post[0]
-    title = post[1]
-    content = post[2]
-    time_created = post[3]
-)
-@app.get("/posts")
-def get_posts():
-    cursor.execute("SELECT * FROM posts")
-    posts = cursor.fetchall()
-    return posts
 
-@app.post("/posts", status_code = 201)
-def create_posts(post: Post):
-    sql = "INSERT INTO posts (title, content) VALUES (%s, %s)"
-    vals = (post.title, post.content)
-    cursor.execute(sql, vals)
-    mydb.commit()
-
-    return post
-
-
-
-@app.get("/posts/{id}")
-def get_post_by_id(id: int):
-        cursor.execute(f"SELECT * FROM posts WHERE id = {str(id)}")
-        post = cursor.fetchone()
-        if not post:
-            raise HTTPException(status_code = 404,
-            detail = "post not found")
-
-        return post
-
-@app.delete("/posts/{id}", status_code = 204)
-def delete_post(id : int):
-    cursor.execute(f"DELETE FROM posts WHERE id = {str(id)}")
-    success = cursor.fetchone()
-    if not success:
-        raise HTTPException(status_code = 404,
-        detail = "post not found")
-    mydb.commit()
-"""
 app.include_router(graphql_app, prefix="/graphql")
