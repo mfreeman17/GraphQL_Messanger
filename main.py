@@ -51,6 +51,20 @@ class Mutation:
         db.commit()
         return f"created user {username}"
 
+    @strawberry.mutation
+    def sendMessage(self, recipient_username: str,  message: str, jwt_token:str,) -> str:
+        try:
+            user_id = oath2.get_user_id(jwt_token)
+        except:
+            raise JWTError("Could not validate token")
+        db = next(get_db())
+        recipient_id = db.query(models.Users).filter(models.Users.username == recipient_username).first().id
+        if not recipient_id:
+            return "could not find recipient"
+        db.add(models.Message(author=user_id, recipient=recipient_id, content=message))
+        db.commit()
+        return "message sent"
+
     @strawberry.field
     def login(self, username: str, password: str, info: Info ) -> schemas.LoginResult:
         db = next(get_db())
