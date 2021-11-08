@@ -1,5 +1,8 @@
 import strawberry
 from datetime import datetime
+from typing  import List
+
+
 @strawberry.type
 class UserResponse:
     id : int
@@ -13,11 +16,15 @@ class Token:
     token_type : str
 
 @strawberry.type
-class PostResponse:
+class MessageResponse:
     id : int
-    title: str
+    author: int
+    recipient: int
     content: str
     time_created : datetime
+    
+
+
 @strawberry.type
 class LoginSuccess:
     token: str
@@ -37,3 +44,4 @@ class TokenError:
     msg : str
 
 tokenResult = strawberry.union("tokenResult", (TokenData, TokenError))
+messageResult = strawberry.union("messageResult", (MessageResponse, LoginError))

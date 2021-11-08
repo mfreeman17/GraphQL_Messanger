@@ -1,14 +1,14 @@
-from sqlalchemy import Column, DateTime, Integer, String, VARCHAR, ForeignKey
+from sqlalchemy import Column, DateTime, Integer, VARCHAR, ForeignKey
 from sqlalchemy.sql import func
 
 from .database import Base
 
 class Message(Base):
     __tablename__ = "messages"
-
+    ## TODO: change author to authorid and recipient to rec_id
     id = Column(Integer, primary_key=True, index=True, nullable = False)
-    author = Column(VARCHAR(20),ForeignKey("users.username"), nullable = False )
-    recipient = Column(VARCHAR(20), ForeignKey("users.username"), nullable = False)
+    author = Column(Integer, ForeignKey("users.id"), nullable = False )
+    recipient = Column(Integer, ForeignKey("users.id"), nullable = False)
     content = Column(VARCHAR(1000), nullable=False)
     time_created = Column(DateTime(timezone=True), server_default=func.now())
 
