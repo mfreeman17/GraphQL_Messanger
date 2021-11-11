@@ -6,7 +6,7 @@ database_username= "root"
 database_password = "icecream"
 database_hostname = "localhost"
 database_port = "3306"
-database_name = "social_media"
+database_name = "messaging"
 
 SQLALCHEMY_DATABASE_URL = f'mysql+mysqlconnector://{database_username}:{database_password}@{database_hostname}:{database_port}/{database_name}'
 

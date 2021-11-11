@@ -1,6 +1,5 @@
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
-from . import schemas
 
 SECRET_KEY = "$1$q19fea4a$dseqxgotnrcfiur8tzeyik0cx8sd"
 ALGORITHM = "HS256"

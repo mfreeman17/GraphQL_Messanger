@@ -1,5 +1,4 @@
 from fastapi import FastAPI, Request, Response, BackgroundTasks, WebSocket
-from fastapi.responses import JSONResponse
 from . import schemas
 from strawberry.fastapi import GraphQLRouter
 from jose import JWTError
@@ -8,7 +7,6 @@ from . import oath2
 from .utils import hash_password, verify
 import strawberry
 from typing  import List
-from strawberry.fastapi import GraphQLRouter
 from . import models
 from strawberry.permission import BasePermission
 from .database import engine, get_db
@@ -52,14 +50,16 @@ class Mutation:
         return f"created user {username}"
 
     @strawberry.mutation
-    def sendMessage(self, recipient_username: str,  message: str, jwt_token:str,) -> str:
+    def sendMessage(self, recipientUsername: str,  message: str, jwt_token:str,) -> str:
         try:
             user_id = oath2.get_user_id(jwt_token)
         except:
             raise JWTError("Could not validate token")
         db = next(get_db())
-        recipient_id = db.query(models.Users).filter(models.Users.username == recipient_username).first().id
+        recipient_id = db.query(models.Users).filter(models.Users.username == recipientUsername).first().id
+        #gets the id of the recipient from the username
         if not recipient_id:
+             # if could not  recipient
             return "could not find recipient"
         db.add(models.Message(author=user_id, recipient=recipient_id, content=message))
         db.commit()
@@ -72,7 +72,7 @@ class Mutation:
         if not user or not verify(password, user.password):
             return schemas.LoginError(message="Login Unsuccessful")
         access_token = oath2.create_access_token(data = {"user_id" : user.id})
-        return schemas.LoginSuccess(token = access_token)
+        return schemas.LoginSuccess(token = access_token, tokenType = "bearer")
 
 
 
