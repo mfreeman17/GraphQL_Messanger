@@ -8,18 +8,14 @@ from .utils import hash_password, verify
 import strawberry
 from typing  import List
 from . import models
-from strawberry.permission import BasePermission
 from .database import engine, get_db
 
 models.Base.metadata.create_all(bind=engine)
 
 
-class isAuthenticated(BasePermission):
-    message = "User is not authenticated"
 
 
-async def get_context(background_tasks: BackgroundTasks = None, request: Request = None, ws: WebSocket = None, response: Response = None):
-    return {"request": request, "background_tasks": background_tasks, "response": response}
+
 
 
 @strawberry.type
@@ -66,7 +62,7 @@ class Mutation:
         return "message sent"
 
     @strawberry.field
-    def login(self, username: str, password: str, info: Info ) -> schemas.LoginResult:
+    def login(self, username: str, password: str ) -> schemas.LoginResult:
         db = next(get_db())
         user = db.query(models.Users).filter(models.Users.username == username).first()
         if not user or not verify(password, user.password):
@@ -77,6 +73,6 @@ class Mutation:
 
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)
-graphql_app =  GraphQLRouter(schema, context_getter=get_context)
+graphql_app =  GraphQLRouter(schema)
 app = FastAPI()
 app.include_router(graphql_app, prefix="/graphql")

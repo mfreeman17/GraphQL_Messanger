@@ -16,9 +16,7 @@ class Token:
 
 @strawberry.type
 class MessageResponse:
-    id : int
     author: int
-    recipient: int
     content: str
     time_created : datetime
 
