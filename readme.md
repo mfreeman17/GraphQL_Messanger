@@ -1,4 +1,9 @@
-To run this api run uvicorn app.main:app
+To run this api I reccomend using docker.
+First build the project using:
+
+docker build -t graph-ql . 
+Then you can use docekr compose up to start your session. 
+
 This will start a session on localhost:8000
 In your browser go to localhost:8000/graphql.
 This will take you to GraphiQL which is an in-browser tool for writing, validating, and testing GraphQL queries.
@@ -57,6 +62,4 @@ This will return a list of all messages sent to you.
 
 Next Steps:
 CI/CD pipeline
-Dockerize
-Encrypt Messages
 Build Front End
