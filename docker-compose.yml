@@ -2,5 +2,28 @@ version: "3"
 services:
   api:
     build: .
+    depends_on:
+      - db
     ports:
       - 8000:8000
+    environment:
+      DATABASE_HOSTNAME: app-db
+      DATABASE_USERNAME: root
+      DATABASE_PASSWORD: icecream
+      DATABASE_PORT: 3306
+      DATABASE_NAME: messaging
+      SECRET_KEY: 217039dsaf89cuce7s089r3j2klsdjafiuuap
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+    links:
+      - app-db
+  app-db:
+    image: mysql:latest
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpw
+      MYSQL_DATABASE: message
+      MYSQL_USER: me
+      MYSQL_PASSWORD: pass

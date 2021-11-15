@@ -1,8 +1,7 @@
-from fastapi import FastAPI, Request, Response, BackgroundTasks, WebSocket
+from fastapi import FastAPI
 from . import schemas
 from strawberry.fastapi import GraphQLRouter
 from jose import JWTError
-from strawberry.types import Info
 from . import oath2
 from .utils import hash_password, verify
 import strawberry
@@ -10,9 +9,10 @@ from typing  import List
 from . import models
 from .database import engine, get_db
 
+
+
+#creates all database schemas
 models.Base.metadata.create_all(bind=engine)
-
-
 
 
 
@@ -24,11 +24,10 @@ class Query():
     @strawberry.field
     def getYourMessages(self, jwt_token: str)->List[schemas.MessageResponse]:
         try:
-            user_id = oath2.get_user_id(jwt_token)
+            user_id = oath2.get_user_id(jwt_token) #gets user id and validates token
         except:
             raise JWTError("Could not validate token")
         db = next(get_db())
-        print(user_id)
         messages = db.query(models.Message).filter(models.Message.recipient==user_id).all()
         return messages
 
